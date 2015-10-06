@@ -129,6 +129,7 @@ def create_mem_ctrl(cls, r, i, nbr_mem_ctrls, intlv_bits, intlv_size):
 
             intlv_low_bit = int(math.log(rowbuffer_size, 2))
 
+
     # We got all we need to configure the appropriate address
     # range
     ctrl.range = m5.objects.AddrRange(r.start, size = r.size(),
@@ -182,9 +183,15 @@ def config_mem(options, system):
         for i in xrange(nbr_mem_ctrls):
             mem_ctrl = create_mem_ctrl(cls, r, i, nbr_mem_ctrls, intlv_bits,
                                        intlv_size)
+
+            if issubclass(cls, m5.objects.Ramulator):
+              if not options.ramulator_config:
+                fatal("--mem-type=ramulator require --ramulator-config option")
+              mem_ctrl.config_file = options.ramulator_config
+
             # Set the number of ranks based on the command-line
             # options if it was explicitly set
-            if issubclass(cls, m5.objects.DRAMCtrl) and \
+            elif issubclass(cls, m5.objects.DRAMCtrl) and \
                     options.mem_ranks:
                 mem_ctrl.ranks_per_channel = options.mem_ranks
 

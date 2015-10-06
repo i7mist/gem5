@@ -1,0 +1,7 @@
+To use Ramulator in gem5 simulations
+
+1. Compile gem5
+
+2. Run gem5 with Ramulator
+    2.1 Use --mem-type=Ramulator and --ramulator-config=XXX
+
