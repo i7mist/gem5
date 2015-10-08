@@ -62,6 +62,14 @@ class L2Cache(BaseCache):
     tgts_per_mshr = 12
     write_buffers = 8
 
+class L3Cache(BaseCache):
+    assoc = 16
+    hit_latency = 20
+    response_latency = 20
+    mshrs = 512
+    tgts_per_mshr = 20
+    write_buffers = 256
+
 class IOCache(BaseCache):
     assoc = 8
     hit_latency = 50

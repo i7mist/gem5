@@ -111,6 +111,7 @@ def addCommonOptions(parser):
                       help="use external ports of this port_type for caches")
     parser.add_option("--caches", action="store_true")
     parser.add_option("--l2cache", action="store_true")
+    parser.add_option("--l3cache", action="store_true")
     parser.add_option("--fastmem", action="store_true")
     parser.add_option("--num-dirs", type="int", default=1)
     parser.add_option("--num-l2caches", type="int", default=1)
@@ -124,6 +125,10 @@ def addCommonOptions(parser):
     parser.add_option("--l2_assoc", type="int", default=8)
     parser.add_option("--l3_assoc", type="int", default=16)
     parser.add_option("--cacheline_size", type="int", default=64)
+    parser.add_option("--l1d_latency", type="int", default=4)
+    parser.add_option("--l1i_latency", type="int", default=4)
+    parser.add_option("--l2_latency", type="int", default=12)
+    parser.add_option("--l3_latency", type="int", default=36)
 
     # Enable Ruby
     parser.add_option("--ruby", action="store_true")

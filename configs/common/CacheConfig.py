@@ -60,16 +60,25 @@ def config_cache(options, system):
             print "arm_detailed is unavailable. Did you compile the O3 model?"
             sys.exit(1)
 
-        dcache_class, icache_class, l2_cache_class = \
-            O3_ARM_v7a_DCache, O3_ARM_v7a_ICache, O3_ARM_v7aL2
+        dcache_class, icache_class, l2_cache_class, l3_cache_class = \
+            O3_ARM_v7a_DCache, O3_ARM_v7a_ICache, O3_ARM_v7aL2, O3_ARM_v7aL3
     else:
-        dcache_class, icache_class, l2_cache_class = \
-            L1Cache, L1Cache, L2Cache
+        dcache_class, icache_class, l2_cache_class, l3_cache_class = \
+            L1Cache, L1Cache, L2Cache, L3Cache
 
     # Set the cache line size of the system
     system.cache_line_size = options.cacheline_size
 
-    if options.l2cache:
+    if options.l3cache:
+        system.l3 = l3_cache_class(clk_domain=system.cpu_clk_domain,
+                                   size=options.l3_size,
+                                   assoc=options.l3_assoc)
+        system.l3.hit_latency=options.l3_latency
+        system.l3.response_latency=options.l3_latency
+        system.tol3bus = L3XBar(clk_domain=system.cpu_clk_domain)
+        system.l3.cpu_side=system.tol3bus.master
+        system.l3.mem_side=system.membus.slave
+    elif options.l2cache:
         # Provide a clock for the L2 and the L1-to-L2 bus here as they
         # are not connected using addTwoLevelCacheHierarchy. Use the
         # same clock as the CPUs.
@@ -88,8 +97,12 @@ def config_cache(options, system):
         if options.caches:
             icache = icache_class(size=options.l1i_size,
                                   assoc=options.l1i_assoc)
+            icache.hit_latency=options.l1i_latency
+            icache.response_latency=options.l1i_latency
             dcache = dcache_class(size=options.l1d_size,
                                   assoc=options.l1d_assoc)
+            dcache.hit_latency=options.l1d_latency
+            dcache.response_latency=options.l1d_latency
 
             if options.memchecker:
                 dcache_mon = MemCheckerMonitor(warn_only=True)
@@ -108,7 +121,17 @@ def config_cache(options, system):
 
             # When connecting the caches, the clock is also inherited
             # from the CPU in question
-            if buildEnv['TARGET_ISA'] == 'x86':
+            if options.l3cache:
+              l2cache = l2_cache_class(clk_domain=system.cpu_clk_domain,
+                  size=options.l2_size, assoc=options.l2_assoc)
+              l2cache.hit_latency=options.l2_latency
+              l2cache.response_latency=options.l2_latency
+              if buildEnv['TARGET_ISA'] == 'x86':
+                system.cpu[i].addTwoLevelCacheHierarchy(icache, dcache, l2cache,
+                    PageTableWalkerCache(), PageTableWalkerCache())
+              else:
+                system.cpu[i].addTwoLevelCacheHierarchy(icache, dcache, l2cache)
+            elif buildEnv['TARGET_ISA'] == 'x86':
                 system.cpu[i].addPrivateSplitL1Caches(icache, dcache,
                                                       PageTableWalkerCache(),
                                                       PageTableWalkerCache())
@@ -139,7 +162,9 @@ def config_cache(options, system):
                         ExternalCache("cpu%d.dcache" % i))
 
         system.cpu[i].createInterruptController()
-        if options.l2cache:
+        if options.l3cache:
+            system.cpu[i].connectAllPorts(system.tol3bus, system.membus)
+        elif options.l2cache:
             system.cpu[i].connectAllPorts(system.tol2bus, system.membus)
         elif options.external_memory_system:
             system.cpu[i].connectUncachedPorts(system.membus)
