@@ -168,6 +168,11 @@ else:
 (CPUClass, test_mem_mode, FutureClass) = Simulation.setCPUClass(options)
 CPUClass.numThreads = numThreads
 
+if CPUClass == DerivO3CPU:
+    CPUClass.numROBEntries = options.rob_size
+    CPUClass.LQEntries = options.loadq_entries
+    CPUClass.SQEntries = options.storeq_entries
+
 # Check -- do not allow SMT with multiple CPUs
 if options.smt and options.num_cpus > 1:
     fatal("You cannot use SMT with multiple CPUs!")

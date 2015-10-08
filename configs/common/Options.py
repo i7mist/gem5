@@ -82,7 +82,11 @@ def addCommonOptions(parser):
                       Only used if multiple programs are specified. If true,
                       then the number of threads per cpu is same as the
                       number of programs.""")
-
+    # CPU customize
+    parser.add_option("--rob_size", type="int", default=192) # 224
+    parser.add_option("--loadq_entries", type="int", default=32) # 72
+    parser.add_option("--storeq_entries", type="int", default=32) # 56
+     
     # Memory Options
     parser.add_option("--list-mem-types",
                       action="callback", callback=_listMemTypes,
