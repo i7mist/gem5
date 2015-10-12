@@ -1,6 +1,6 @@
 #!/bin/bash
  
-GEM5_DIR=/safari/hyena/tianshi/gem5-stable                          # I set this variable to (pwd) based on the assumption that you are in gem5 working directory. /home/$(YOUR_USER_NAME)/hrm/gem5-stable
+GEM5_DIR=/safari/hyena/tianshi/gem5                          # I set this variable to (pwd) based on the assumption that you are in gem5 working directory. /home/$(YOUR_USER_NAME)/hrm/gem5-stable
 #SPEC_DIR=/safari/hyena/amirali/spec2006/benchmark                  # Install location of your SPEC2006 benchmarks
 SPEC_DIR=/safari/hyena/tianshi/benchmark                  # Install location of your SPEC2006 benchmarks
 #SPEC_DIR=/safari/africanswallow/yixinluo/hrm/spec2006/benchmark                  # Install location of your SPEC2006 benchmarks
@@ -26,7 +26,8 @@ RESTORE_POINT_WARM=$((RESTORE_POINT - WARMUP_LENGTH)) # restore point before war
 echo RESTORE_POINT_WARM $RESTORE_POINT_WARM
 OUTPUT_DIR=$RESULT_DIR/$OUT/$BENCHMARK/$STANDARD
 mkdir -p $OUTPUT_DIR
-CHECKPOINT_DIR=$GEM5_DIR/$OUT/checkpoints
+# CHECKPOINT_DIR=$GEM5_DIR/$OUT/checkpoints
+CHECKPOINT_DIR=/safari/hyena/tianshi/gem5_SE_checkpoints/1509_checkpoints/
 CMDTRACE_DIR=$RESULT_DIR/$OUT/$BENCHMARK/cmdtrace/$STANDARD
 mkdir -p $CMDTRACE_DIR
 
@@ -230,7 +231,7 @@ $GEM5_DIR/build/X86/$BIN \
     -r $RESTORE_POINT_WARM --checkpoint-dir=$CHECKPOINT_DIR/$BENCHMARK\
     -I 1000000000 \
     --cpu-type=detailed \
-    --mem-type=ramulator \
+    --mem-type=Ramulator \
     --mem-size=$MEM_SIZE \
     --ramulator-config=$GEM5_DIR/ext/ramulator/configs/$RAMULATOR_CONFIG.cfg \
     --ramulator-mem-trace=$CMDTRACE_DIR/$BENCHMARK-$STANDARD- \

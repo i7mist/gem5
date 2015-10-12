@@ -55,6 +55,8 @@ private:
     DrainManager *drain_manager;
 
     std::string config_file;
+    std::string mem_trace_file;
+
     ramulator::Gem5Wrapper *wrapper;
     std::function<void(ramulator::Request&)> read_cb_func;
     std::function<void(ramulator::Request&)> write_cb_func;

@@ -104,6 +104,8 @@ def addCommonOptions(parser):
     parser.add_option("--ramulator-config", type="string",
                       dest="ramulator_config",
                       help="Specify Ramulator configuration file, override other --mem-XXX options")
+    parser.add_option("--ramulator-mem-trace", type="string", dest="ramulator_mem_trace",
+                      help="Specify Ramulator memory trace dump destination")
 
     parser.add_option("-l", "--lpae", action="store_true")
     parser.add_option("-V", "--virtualisation", action="store_true")

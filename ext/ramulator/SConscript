@@ -19,6 +19,7 @@ def DRAMFile(filename):
 
 DRAMFile('Config.cpp')
 DRAMFile('Controller.cpp')
+DRAMFile('DRAM.cpp')
 DRAMFile('DDR3.cpp')
 DRAMFile('DDR4.cpp')
 DRAMFile('GDDR5.cpp')

@@ -11,3 +11,4 @@ class Ramulator(AbstractMemory):
     port = SlavePort("Slave port")
 
     config_file = Param.String("", "configuration file")
+    mem_trace_file = Param.String("", "memory trace file (for power estimation)")

@@ -11,6 +11,7 @@ Ramulator::Ramulator(const Params *p):
     requestsInFlight(0),
     drain_manager(NULL),
     config_file(p->config_file),
+    mem_trace_file(p->mem_trace_file),
     wrapper(NULL),
     read_cb_func(std::bind(&Ramulator::readComplete, this, std::placeholders::_1)),
     write_cb_func(std::bind(&Ramulator::writeComplete, this, std::placeholders::_1)),
@@ -32,7 +33,7 @@ void Ramulator::init() {
     } else { 
         port.sendRangeChange(); 
     }
-    wrapper = new ramulator::Gem5Wrapper(config_file, system()->cacheLineSize());
+    wrapper = new ramulator::Gem5Wrapper(config_file, mem_trace_file, system()->cacheLineSize());
     ticks_per_clk = Tick(wrapper->tCK * SimClock::Float::ns);
 
     DPRINTF(Ramulator, "Instantiated Ramulator with config file '%s' (tCK=%lf, %d ticks per clk)\n", 
