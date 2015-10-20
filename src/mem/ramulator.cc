@@ -190,6 +190,10 @@ void Ramulator::accessAndRespond(PacketPtr pkt) {
 
 void Ramulator::readComplete(ramulator::Request& req){
     DPRINTF(Ramulator, "Read to %ld completed.\n", req.addr);
+    if (req.depart > last) {
+      memory_access_cycles += req.depart - max(last, req.arrive);
+      last = req.depart;
+    }
     auto pkt_q = reads.find(req.addr)->second;
     PacketPtr pkt = pkt_q.front();
     pkt_q.pop_front();

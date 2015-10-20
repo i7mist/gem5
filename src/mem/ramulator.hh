@@ -5,6 +5,8 @@
 #include <tuple>
 #include <map>
 
+#include "Ramulator/src/Statistics.h"
+#include "base/statistics.hh"
 #include "mem/abstract_mem.hh"
 #include "params/Ramulator.hh"
 
@@ -14,6 +16,9 @@ namespace ramulator{
 }
 
 class Ramulator : public AbstractMemory {
+private:
+  ramulator::ScalarStat memory_access_cycles;
+  long last = 0;
 private:
 
     class TestPort: public SlavePort {
