@@ -1,22 +1,21 @@
 #!/bin/zsh
 
-M5_PATH=/safari/hyena/tianshi/gem5-stable
+GEM5_DIR=/safari/hyena/tianshi/gem5
 WORKLOAD_PATH=/safari/hyena/tianshi/workloads/DynoGraph
 
 MYARGC=$#
 
-if [[ "$MYARGC" != 4 ]]; then
-  echo "./rum_dynograph.sh GEM5_BIN WORKLOAD_NAME INPUT_NAME STANDARD"
+if [[ "$MYARGC" != 6 ]]; then
+  echo "./rum_dynograph.sh GEM5_BIN WORKLOAD_NAME INPUT_NAME OUTPUT_DIR RAMULATOR_CONFIG STANDARD"
   exit
 fi
 
 GEM5_BIN=$1
 WORKLOAD_NAME=$2
 INPUT_NAME=$3
-STANDARD=$4
-
-INTERVAL_LENGTH=1000000000
-WARMUP_LENGTH=100000000
+OUT=$4
+RAMULATOR_CONFIG=$5
+STANDARD=$6
 
 # set mem-size option
 #if [[ "$STANDARD" == "WideIO" ]]; then
@@ -28,32 +27,40 @@ WARMUP_LENGTH=100000000
 # in case the process will die of memory deficiency, we set the memory size to all DRAM standards to 4GB
 MEM_SIZE="4GB"
 
-OUTPUT_DIR=/safari/hyena/tianshi/gem5-stable/characterize/workloads_outdir/DynoGraph/$WORKLOAD_NAME/$INPUT_NAME/$STANDARD
+RESULT_DIR=/safari/hyena/tianshi/characterize_result
+OUTPUT_DIR=$RESULT_DIR/$OUT/$WORKLOAD_NAME/$INPUT_NAME/$STANDARD
+echo $OUTPUT_DIR
 
 mkdir -p $OUTPUT_DIR
 
-# TODO finish config file for all DRAM 
-RAMULATOR_CONFIG="$STANDARD"-config
+cd $WORKLOAD_PATH
 
-# restore checkpoint
-
-$M5_PATH/build/X86/$GEM5_BIN \
+$GEM5_DIR/build/X86/$GEM5_BIN \
     --outdir=$OUTPUT_DIR \
     --remote-gdb-port=0 \
-    $M5_PATH/configs/example/se.py \
+    $GEM5_DIR/configs/example/se.py \
     --cpu-type=detailed --mem-size=$MEM_SIZE \
-    --mem-type=ramulator \
-    --ramulator-config=$M5_PATH/ext/ramulator/configs/$RAMULATOR_CONFIG.cfg \
+    --mem-type=Ramulator \
+    --ramulator-config=$GEM5_DIR/ext/ramulator/configs/$RAMULATOR_CONFIG.cfg \
+    -c $WORKLOAD_PATH/$WORKLOAD_NAME \
+    -o "$WORKLOAD_PATH/data/$INPUT_NAME" \
+    --output="$OUTPUT_DIR/$WORKLOAD_NAME.$INPUT_NAME.out" \
+    --errout="$OUTPUT_DIR/$WORKLOAD_NAME.$INPUT_NAME.err" \
     --caches \
     --l3cache \
     --l1d_size=32kB \
     --l2_size=256kB \
     --l3_size=8MB \
+    --l1i_assoc=8 \
     --l1d_assoc=8 \
-    --l2_assoc=8 \
-    --l3_assoc=8 \
+    --l2_assoc=4 \
+    --l3_assoc=16 \
+    --l1d_latency=4 \
+    --l2_latency=12 \
+    --l3_latency=36 \
     --cacheline_size=64 \
-    -c $WORKLOAD_PATH/$WORKLOAD_NAME \
-    -o "$WORKLOAD_PATH/data/$INPUT_NAME" \
-    --output="$OUTPUT_DIR/$WORKLOAD_NAME.$INPUT_NAME.out" \
-    --errout="$OUTPUT_DIR/$WORKLOAD_NAME.$INPUT_NAME.err"
+    --cpu-clock=4GHz \
+    --rob_size=224 \
+    --loadq_entries=72 \
+    --storeq_entries=56 \
+
