@@ -31,6 +31,7 @@ from m5.proxy import *
 
 from Device import IsaFake
 from Pci import PciConfigAll
+from Ethernet import NSGigE, IGbE_igb, IGbE_e1000
 from Platform import Platform
 from SouthBridge import SouthBridge
 from Terminal import Terminal
@@ -62,6 +63,10 @@ class Pc(Platform):
     com_1.pio_addr = x86IOAddress(0x3f8)
     com_1.terminal = Terminal()
 
+    # Ethernet
+    ethernet = IGbE_e1000(pci_bus=0, pci_dev=0, pci_func=0,
+                          InterruptLine=1, InterruptPin=1)
+
     # Devices to catch access to non-existant serial ports.
     fake_com_2 = IsaFake(pio_addr=x86IOAddress(0x2f8), pio_size=8)
     fake_com_3 = IsaFake(pio_addr=x86IOAddress(0x3e8), pio_size=8)
@@ -81,3 +86,6 @@ class Pc(Platform):
         self.fake_com_4.pio = bus.master
         self.fake_floppy.pio = bus.master
         self.pciconfig.pio = bus.default
+        self.ethernet.pio    = bus.master
+        self.ethernet.config = bus.master
+        self.ethernet.dma    = bus.slave
