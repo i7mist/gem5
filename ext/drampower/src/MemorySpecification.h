@@ -232,7 +232,8 @@ class MemorySpecification : public virtual Parametrisable {
   MemPowerSpec  memPowerSpec;
 
   void processParameters();
-
+  MemorySpecification(){}
+  MemorySpecification(const std::string& id);
   static MemorySpecification getMemSpecFromXML(const std::string& id);
 };
 }  // namespace Data

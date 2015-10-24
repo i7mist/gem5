@@ -59,6 +59,7 @@ DRAMPowerFile('MemorySpecification.cc')
 DRAMPowerFile('Parameter.cc')
 DRAMPowerFile('Parametrisable.cc')
 DRAMPowerFile('libdrampower/LibDRAMPower.cc')
+DRAMPowerFile('tinyxml2.cpp')
 
 main.Library('drampower', [main.SharedObject(f) for f in drampower_files])
 

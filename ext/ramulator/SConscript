@@ -39,6 +39,7 @@ dramenv.Append(CXXFLAGS=['-Wno-reorder'])
 
 # added support to hook in gem5 headers
 dramenv.Append(CPPPATH = Dir('../../src/'))
+dramenv.Prepend(CPPPATH=Dir('../drampower/src'))
 
 dramenv.Library('ramulator', [dramenv.SharedObject(f) for f in dram_files])
 
