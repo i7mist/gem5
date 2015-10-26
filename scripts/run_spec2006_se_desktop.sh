@@ -1,7 +1,6 @@
 #!/bin/bash
  
-GEM5_DIR=/safari/hyena/tianshi/gem5                          # I set this variable to (pwd) based on the assumption that you are in gem5 working directory. /home/$(YOUR_USER_NAME)/hrm/gem5-stable
-#SPEC_DIR=/safari/hyena/amirali/spec2006/benchmark                  # Install location of your SPEC2006 benchmarks
+GEM5_DIR=/safari/hyena/tianshi/gem5
 SPEC_DIR=/safari/hyena/tianshi/benchmark                  # Install location of your SPEC2006 benchmarks
 #SPEC_DIR=/safari/africanswallow/yixinluo/hrm/spec2006/benchmark                  # Install location of your SPEC2006 benchmarks
 RESULT_DIR=/safari/hyena/tianshi/characterize_result
@@ -27,7 +26,7 @@ echo RESTORE_POINT_WARM $RESTORE_POINT_WARM
 OUTPUT_DIR=$RESULT_DIR/$OUT/$BENCHMARK/$STANDARD
 mkdir -p $OUTPUT_DIR
 # CHECKPOINT_DIR=$GEM5_DIR/$OUT/checkpoints
-CHECKPOINT_DIR=/safari/hyena/tianshi/gem5_SE_checkpoints/1509_checkpoints/
+CHECKPOINT_DIR=/safari/hyena/tianshi/tmp/gem5-stable/characterize/spec_outdir/checkpoints
 CMDTRACE_DIR=$RESULT_DIR/$OUT/$BENCHMARK/cmdtrace/$STANDARD
 mkdir -p $CMDTRACE_DIR
 
