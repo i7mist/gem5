@@ -107,8 +107,11 @@ class AbstractMemory : public MemObject
     // Address range of this memory
     AddrRange range;
 
-    // Pointer to host memory used to implement this memory
-    uint8_t* pmemAddr;
+    // Address ranges for memory that has multiple address ranges.
+    std::vector<AddrRange> ranges;
+
+    // Pointers to host memory used to implement this memory
+    std::map<AddrRange, uint8_t*> pmemAddr_map;
 
     // Enable specific memories to be reported to the configuration table
     bool confTableReported;
@@ -213,7 +216,7 @@ class AbstractMemory : public MemObject
      *
      * @param pmem_addr Pointer to a segment of host memory
      */
-    void setBackingStore(uint8_t* pmem_addr);
+    void setBackingStore(const AddrRange& r, uint8_t* pmem_addr);
 
     /**
      * Get the list of locked addresses to allow checkpointing.
@@ -251,6 +254,22 @@ class AbstractMemory : public MemObject
      * @return a single contigous address range
      */
     AddrRange getAddrRange() const;
+
+
+    /**
+     * Get the address ranges (For multiple ranges memory)
+     *
+     * @return a bunch of contigous address ranges
+     */
+    AddrRangeList getAddrRanges() const;
+
+    /**
+     * Check whether vector ranges is not empty.
+     *
+     * @return true when it is not empty, otherwise return false.
+     */
+
+    bool rangesNotEmpty() const;
 
     /**
      * Get the memory size.

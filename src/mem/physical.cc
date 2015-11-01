@@ -85,15 +85,30 @@ PhysicalMemory::PhysicalMemory(const string& _name,
         // only add the memory if it is part of the global address map
         if (m->isInAddrMap()) {
             memories.push_back(m);
+            DPRINTF(AddrRanges, "iterate through the memory list: m->name() %s\n", m->name());
 
             // calculate the total size once and for all
             size += m->size();
 
-            // add the range to our interval tree and make sure it does not
-            // intersect an existing range
-            fatal_if(addrMap.insert(m->getAddrRange(), m) == addrMap.end(),
-                     "Memory address range for %s is overlapping\n",
-                     m->name());
+            // TIANSHI: first check whether multiple ranges are directed to
+            // this memory instance.
+            if (m->rangesNotEmpty()) {
+              const auto& ranges = m->getAddrRanges();
+              for (const auto& r : ranges) {
+                fatal_if(addrMap.insert(r, m) == addrMap.end(),
+                         "Memory address range %s for %s is overlapping\n",
+                         r.to_string(), m->name());
+                DPRINTF(AddrRanges,
+                    "Add range %s to memory %s in addrMap\n",
+                    r.to_string(), m->name());
+              }
+            } else {
+              // add the range to our interval tree and make sure it does not
+              // intersect an existing range
+              fatal_if(addrMap.insert(m->getAddrRange(), m) == addrMap.end(),
+                       "Memory address range %s for %s is overlapping\n",
+                       m->getAddrRange().to_string(), m->name());
+            }
         } else {
             // this type of memory is used e.g. as reference memory by
             // Ruby, and they also needs a backing store, but should
@@ -132,14 +147,21 @@ PhysicalMemory::PhysicalMemory(const string& _name,
                 if (!intlv_ranges.empty() &&
                     !intlv_ranges.back().mergesWith(r.first)) {
                     AddrRange merged_range(intlv_ranges);
+                    DPRINTF(AddrRanges,
+                        "Creating backing store for memory interleaved range %s\n", merged_range.to_string());
                     createBackingStore(merged_range, curr_memories);
                     intlv_ranges.clear();
                     curr_memories.clear();
                 }
+                DPRINTF(AddrRanges,
+                    "Same range interleaved memory %s: %s\n",
+                    r.second->name(), r.first.to_string());
                 intlv_ranges.push_back(r.first);
                 curr_memories.push_back(r.second);
             } else {
                 vector<AbstractMemory*> single_memory{r.second};
+                DPRINTF(AddrRanges,
+                    "Creating backing store for uninterleaved memory range %s\n", r.first.to_string(), r.second->name());
                 createBackingStore(r.first, single_memory);
             }
         }
@@ -190,7 +212,7 @@ PhysicalMemory::createBackingStore(AddrRange range,
     for (const auto& m : _memories) {
         DPRINTF(AddrRanges, "Mapping memory %s to backing store\n",
                 m->name());
-        m->setBackingStore(pmem);
+        m->setBackingStore(range, pmem);
     }
 }
 

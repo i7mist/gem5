@@ -46,9 +46,7 @@ private:
         }
 
         AddrRangeList getAddrRanges() const {
-            AddrRangeList ranges;
-            ranges.push_back(mem.getAddrRange());
-            return ranges;
+            return mem.getAddrRanges();
         }
     } port;
 

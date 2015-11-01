@@ -55,7 +55,7 @@
 using namespace std;
 
 AbstractMemory::AbstractMemory(const Params *p) :
-    MemObject(p), range(params()->range), pmemAddr(NULL),
+    MemObject(p), range(params()->range), ranges(p->ranges),
     confTableReported(p->conf_table_reported), inAddrMap(p->in_addr_map),
     _system(NULL)
 {
@@ -71,9 +71,11 @@ AbstractMemory::init()
 }
 
 void
-AbstractMemory::setBackingStore(uint8_t* pmem_addr)
+AbstractMemory::setBackingStore(const AddrRange& r, uint8_t* pmem_addr)
 {
-    pmemAddr = pmem_addr;
+    fatal_if(!pmemAddr_map.insert(make_pair(r, pmem_addr)).second,
+        "setBackingStore: duplicate ranges: %s\n",
+        r.to_string());
 }
 
 void
@@ -188,6 +190,20 @@ AddrRange
 AbstractMemory::getAddrRange() const
 {
     return range;
+}
+
+
+AddrRangeList
+AbstractMemory::getAddrRanges() const
+{
+  AddrRangeList ranges_list(ranges.begin(), ranges.end());
+  return ranges_list;
+}
+
+bool
+AbstractMemory::rangesNotEmpty() const
+{
+  return !ranges.empty();
 }
 
 // Add load-locked to tracking list.  Should only be called if the
@@ -322,8 +338,34 @@ AbstractMemory::checkLockedAddrList(PacketPtr pkt)
 void
 AbstractMemory::access(PacketPtr pkt)
 {
-    assert(AddrRange(pkt->getAddr(),
-                     pkt->getAddr() + pkt->getSize() - 1).isSubset(range));
+    // TIANSHI: first, picks a corresponding range
+    AddrRange selected_range;
+
+    if (rangesNotEmpty()) {
+      bool mem_range_valid = false;
+      for (auto r : ranges) {
+        if(AddrRange(pkt->getAddr(),
+                     pkt->getAddr() + pkt->getSize() - 1).isSubset(r)) {
+          mem_range_valid = true;
+          selected_range = r;
+          break;
+        }
+      }
+      fatal_if(!mem_range_valid,
+               "AbstractMemory::access [%x, %x]\n",
+               pkt->getAddr(),pkt->getAddr() + pkt->getSize() - 1);
+    } else {
+      assert(AddrRange(pkt->getAddr(),
+                       pkt->getAddr() + pkt->getSize() - 1).isSubset(range));
+      selected_range = range;
+    }
+
+    uint8_t* pmemAddr;
+    if (pmemAddr_map.find(selected_range) != pmemAddr_map.end()) {
+      pmemAddr = pmemAddr_map[selected_range];
+    } else {
+      pmemAddr = NULL;
+    }
 
     if (pkt->memInhibitAsserted()) {
         DPRINTF(MemoryAccess, "mem inhibited on 0x%x: not responding\n",
@@ -331,7 +373,7 @@ AbstractMemory::access(PacketPtr pkt)
         return;
     }
 
-    uint8_t *hostAddr = pmemAddr + pkt->getAddr() - range.start();
+    uint8_t *hostAddr = pmemAddr + pkt->getAddr() - selected_range.start();
 
     if (pkt->cmd == MemCmd::SwapReq) {
         std::vector<uint8_t> overwrite_val(pkt->getSize());
@@ -410,10 +452,36 @@ AbstractMemory::access(PacketPtr pkt)
 void
 AbstractMemory::functionalAccess(PacketPtr pkt)
 {
-    assert(AddrRange(pkt->getAddr(),
-                     pkt->getAddr() + pkt->getSize() - 1).isSubset(range));
+    // TIANSHI: first, picks a corresponding range
+    AddrRange selected_range;
 
-    uint8_t *hostAddr = pmemAddr + pkt->getAddr() - range.start();
+    if (rangesNotEmpty()) {
+      bool mem_range_valid = false;
+      for (auto r : ranges) {
+        if(AddrRange(pkt->getAddr(),
+                     pkt->getAddr() + pkt->getSize() - 1).isSubset(r)) {
+          mem_range_valid = true;
+          selected_range = r;
+          break;
+        }
+      }
+      fatal_if(!mem_range_valid,
+               "AbstractMemory::access [%x, %x]\n",
+               pkt->getAddr(),pkt->getAddr() + pkt->getSize() - 1);
+    } else {
+      assert(AddrRange(pkt->getAddr(),
+                       pkt->getAddr() + pkt->getSize() - 1).isSubset(range));
+      selected_range = range;
+    }
+
+    uint8_t* pmemAddr;
+    if (pmemAddr_map.find(selected_range) != pmemAddr_map.end()) {
+      pmemAddr = pmemAddr_map[selected_range];
+    } else {
+      pmemAddr = NULL;
+    }
+
+    uint8_t *hostAddr = pmemAddr + pkt->getAddr() - selected_range.start();
 
     if (pkt->isRead()) {
         if (pmemAddr)

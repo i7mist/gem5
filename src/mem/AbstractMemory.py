@@ -50,6 +50,9 @@ class AbstractMemory(MemObject):
     # A default memory size of 128 MB (starting at 0) is used to
     # simplify the regressions
     range = Param.AddrRange('128MB', "Address range (potentially interleaved)")
+    # TIANSHI: workaround for not consecutive memory space in X86 when memory size larger than 3GB.
+    ranges = VectorParam.AddrRange([], "Address ranges for ramulator")
+
     null = Param.Bool(False, "Do not store data, always return zero")
 
     # All memories are passed to the global physical memory, and

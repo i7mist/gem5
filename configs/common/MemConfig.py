@@ -179,25 +179,35 @@ def config_mem(options, system):
     # For every range (most systems will only have one), create an
     # array of controllers and set their parameters to match their
     # address mapping in the case of a DRAM
-    for r in system.mem_ranges:
-        for i in xrange(nbr_mem_ctrls):
-            mem_ctrl = create_mem_ctrl(cls, r, i, nbr_mem_ctrls, intlv_bits,
-                                       intlv_size)
 
-            if issubclass(cls, m5.objects.Ramulator):
-              if not options.ramulator_config:
-                fatal("--mem-type=ramulator require --ramulator-config option")
-              mem_ctrl.config_file = options.ramulator_config
+    # As Ramulator will initiate only one instance for all ranges, so move it out of the loop
+    if issubclass(cls, m5.objects.Ramulator):
+      mem_ctrl = cls()
+      if not options.ramulator_config:
+        fatal("--mem-type=ramulator require --ramulator-config option")
+      print 'ramulator_config: ' + options.ramulator_config
+      mem_ctrl.config_file = options.ramulator_config
+      mem_ctrl.mem_trace_file = options.ramulator_mem_trace
+      # TIANSHI: ramulator can contain multiple ranges (for example when memory size is larger than 3GB in X86.)
+      mem_ctrl.ranges = system.mem_ranges
+      mem_ctrls.append(mem_ctrl)
 
-            # Set the number of ranks based on the command-line
-            # options if it was explicitly set
-            elif issubclass(cls, m5.objects.DRAMCtrl) and \
-                    options.mem_ranks:
-                mem_ctrl.ranks_per_channel = options.mem_ranks
+    else:
+      for r in system.mem_ranges:
+          for i in xrange(nbr_mem_ctrls):
+              mem_ctrl = create_mem_ctrl(cls, r, i, nbr_mem_ctrls, intlv_bits,
+                                         intlv_size)
 
-            mem_ctrls.append(mem_ctrl)
+              # Set the number of ranks based on the command-line
+              # options if it was explicitly set
+              if issubclass(cls, m5.objects.DRAMCtrl) and \
+                      options.mem_ranks:
+                  mem_ctrl.ranks_per_channel = options.mem_ranks
+
+              mem_ctrls.append(mem_ctrl)
 
     system.mem_ctrls = mem_ctrls
+
 
     # Connect the controllers to the membus
     for i in xrange(len(system.mem_ctrls)):
